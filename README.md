@@ -14,7 +14,7 @@ A small Python tool that screens small-business borrowers for repayment risk, ba
 
 \##Planned features
 
-\- \[ ] Generate synthetic borrower data
+\- \[x] Generate synthetic borrower data
 
 \- \[ ] Calculate monthly instalment (EMI) and Debt Service Coverage Ratio (DSCR) per borrower
 
@@ -31,6 +31,4 @@ A small Python tool that screens small-business borrowers for repayment risk, ba
 &#x20;   pip install -r requirements.txt
 
 &#x20;   python src/generate\_data.py
-
-
 
