@@ -6,9 +6,9 @@
 
 \## 2026-11-19 (Thursday)
 
-\*\*Added:\*\* 
+\*\*Added:\*\*
 
-\--EMI and DSCR calculation in risk\_metrics.py, 
+\--EMI and DSCR calculation in risk\_metrics.py,
 
 \*\*Learned:\*\*
 
@@ -25,6 +25,24 @@
 Risk Tier Classification (src/risk_metrics.py): Implemented classify_dscr_risk_tier and wrote the risk_tier column into borrowers_with_emi_dscr.csv.
 Summary Tables: Built summary output showing borrower counts and shares by risk tier, plus pandas groupby summaries for borrower count and total loan amount grouped by risk_tier and sector.
 
+
+
+
+
+
+\# Work log
+
+
+
+
+
+\## 2026-11-20 (Friday)
+
+\*\*Added:\*\*
+
+Risk Tier Classification (src/risk\_metrics.py): Implemented classify\_dscr\_risk\_tier and wrote the risk\_tier column into borrowers\_with\_emi\_dscr.csv.
+
+Summary Tables: Built summary output showing borrower counts and shares by risk tier, plus pandas groupby summaries for borrower count and total loan amount grouped by risk\_tier and sector.
 
 
 
