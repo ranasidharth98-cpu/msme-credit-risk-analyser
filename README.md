@@ -18,7 +18,7 @@ A small Python tool that screens small-business borrowers for repayment risk, ba
 
 \- \[x] Calculate monthly instalment (EMI) and Debt Service Coverage Ratio (DSCR) per borrower
 
-\- \[ ] Assign a risk tier and summarise the portfolio by tier and sector
+\- \[x] Assign a risk tier and summarise the portfolio by tier and sector
 
 \- \[ ] Stress-test repayment capacity under a revenue shock
 
