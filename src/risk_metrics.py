@@ -1,6 +1,8 @@
 import csv
 from pathlib import Path
 
+import pandas as pd
+
 
 def calculate_monthly_emi(loan_amount: float, annual_interest_rate: float, tenure_months: int) -> float:
     """Calculate and return the Equated Monthly Instalment (EMI)."""
@@ -26,27 +28,96 @@ def calculate_dscr(monthly_revenue: float, monthly_operating_cost: float, monthl
     return net_operating_income / monthly_emi
 
 
+def classify_dscr_risk_tier(dscr: float) -> str:
+    """Map a DSCR value to Low, Medium, or High risk based on README cut-offs."""
+    if dscr < 1.0:
+        return "High"
+    if dscr <= 1.5:
+        return "Medium"
+    return "Low"
+
+
+def print_risk_summary_table(rows: list[dict[str, str]]) -> None:
+    """Print a formatted summary table of borrower counts and percentages by risk tier."""
+    total = len(rows)
+    counts = {"High": 0, "Medium": 0, "Low": 0}
+
+    for row in rows:
+        tier = row.get("risk_tier", "")
+        if tier in counts:
+            counts[tier] += 1
+
+    print("\n=== DSCR Risk Tier Summary ===")
+    print(f"{'Risk Tier':<10} {'Borrowers':>10} {'Share':>10}")
+    print("-" * 32)
+    for tier in ("High", "Medium", "Low"):
+        count = counts[tier]
+        pct = (count / total * 100) if total > 0 else 0.0
+        print(f"{tier:<10} {count:>10} {pct:>9.1f}%")
+    print("-" * 32)
+    print(f"{'Total':<10} {total:>10} {'100.0%' if total > 0 else '0.0%':>10}\n")
+
+
+def print_pandas_summaries(rows: list[dict[str, str]]) -> None:
+    """Print borrower count and total loan amount grouped by risk_tier and sector."""
+    if not rows:
+        print("\nNo borrower rows available for summary tables.\n")
+        return
+
+    df = pd.DataFrame(rows)
+    df["loan_amount_num"] = pd.to_numeric(df["loan_amount"], errors="coerce")
+
+    tier_summary = (
+        df.groupby("risk_tier", dropna=False)
+        .agg(
+            borrowers=("borrower_id", "count"),
+            total_loan_amount=("loan_amount_num", "sum"),
+        )
+        .reindex(["High", "Medium", "Low"])
+        .dropna(how="all")
+    )
+    tier_summary["borrowers"] = tier_summary["borrowers"].fillna(0).astype(int)
+    tier_summary["total_loan_amount"] = tier_summary["total_loan_amount"].fillna(0).round(2)
+
+    sector_summary = (
+        df.groupby("sector", dropna=False)
+        .agg(
+            borrowers=("borrower_id", "count"),
+            total_loan_amount=("loan_amount_num", "sum"),
+        )
+        .sort_values("total_loan_amount", ascending=False)
+    )
+    sector_summary["borrowers"] = sector_summary["borrowers"].astype(int)
+    sector_summary["total_loan_amount"] = sector_summary["total_loan_amount"].round(2)
+
+    print("=== Loan Exposure by Risk Tier ===")
+    print(tier_summary.to_string())
+
+    print("\n=== Loan Exposure by Sector ===")
+    print(sector_summary.to_string())
+    print()
+
+
 def update_borrowers_csv(
     input_path: str | Path = "borrowers.csv",
     output_path: str | Path = "borrowers_with_emi_dscr.csv",
 ) -> list[dict[str, str]]:
-    """Read borrowers.csv, add emi and dscr columns for each row, and write the result."""
+    """Read borrowers.csv, add emi, dscr, and risk_tier columns, write output, and print summaries."""
     in_path = Path(input_path)
     out_path = Path(output_path)
 
-    with in_path.open(mode="r", newline="", encoding="utf-8") as infile:
+    with in_path.open(mode="r", newline="", encoding="utf-8-sig") as infile:
         reader = csv.DictReader(infile)
         if not reader.fieldnames:
             raise ValueError(f"{in_path} has no header row.")
 
-        # Preserve existing columns and append emi and dscr if not already present
         fieldnames = list(reader.fieldnames)
-        for col in ("emi", "dscr"):
+        for col in ("emi", "dscr", "risk_tier"):
             if col not in fieldnames:
                 fieldnames.append(col)
 
         updated_rows: list[dict[str, str]] = []
-        for row_num, row in enumerate(reader, start=2):  # row 1 is header
+        for row_num, row in enumerate(reader, start=2):
             try:
                 emi = calculate_monthly_emi(
                     loan_amount=float(row["loan_amount"]),
@@ -58,12 +129,14 @@ def update_borrowers_csv(
                     monthly_operating_cost=float(row["monthly_operating_cost"]),
                     monthly_emi=emi,
                 )
+                risk_tier = classify_dscr_risk_tier(dscr)
             except (KeyError, ValueError) as exc:
                 raise ValueError(f"Error processing row {row_num} in {in_path}: {exc}") from exc
 
             new_row = dict(row)
             new_row["emi"] = f"{emi:.2f}"
             new_row["dscr"] = f"{dscr:.2f}"
+            new_row["risk_tier"] = risk_tier
             updated_rows.append(new_row)
 
     with out_path.open(mode="w", newline="", encoding="utf-8") as outfile:
@@ -72,14 +145,14 @@ def update_borrowers_csv(
         writer.writerows(updated_rows)
 
     print(f"Processed {len(updated_rows)} borrowers -> saved to {out_path}")
+    print_risk_summary_table(updated_rows)
+    print_pandas_summaries(updated_rows)
     return updated_rows
 
 
 if __name__ == "__main__":
-    script_dir = Path(__file__).resolve().parent
-    project_root = script_dir.parent  # C:\Users\sidha\Documents\msme-credit-risk-analyser
-
+    project_root = Path(__file__).resolve().parent.parent
     update_borrowers_csv(
-        project_root / "data" / "borrowers.csv",
+        input_path=project_root / "data" / "borrowers.csv",
         output_path=project_root / "borrowers_with_emi_dscr.csv",
     )
