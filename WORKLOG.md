@@ -20,5 +20,11 @@
 
 \-Risk tiers and Portfolio summary
 
+## 2026-11-20 (Friday)
+**Added:**
+Risk Tier Classification (src/risk_metrics.py): Implemented classify_dscr_risk_tier and wrote the risk_tier column into borrowers_with_emi_dscr.csv.
+Summary Tables: Built summary output showing borrower counts and shares by risk tier, plus pandas groupby summaries for borrower count and total loan amount grouped by risk_tier and sector.
+
+
 
 
