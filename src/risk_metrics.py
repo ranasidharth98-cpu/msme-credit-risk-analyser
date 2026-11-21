@@ -29,7 +29,7 @@ def calculate_dscr(monthly_revenue: float, monthly_operating_cost: float, monthl
 
 
 def classify_dscr_risk_tier(dscr: float) -> str:
-    """Map a DSCR value to Low, Medium, or High risk based on README cut-offs."""
+    """Map a DSCR value to Low, Medium, or High risk."""
     if dscr < 1.0:
         return "High"
     if dscr <= 1.5:
@@ -97,6 +97,41 @@ def print_pandas_summaries(rows: list[dict[str, str]]) -> None:
     print(sector_summary.to_string())
     print()
 
+def report_revenue_drop_stress_test(
+        rows: list[dict[str, str]],
+    revenue_drop_pct: float = 20.0,
+) ->int:
+    """Recalculate DSCR after a revenue drop and report how many borrowers move into High tier."""
+    multiplier = 1.0 -(revenue_drop_pct / 100.0)
+    moved_into_high = 0
+    already_high = 0
+    stressed_high_total = 0
+
+    for row in rows:
+        base_tier = row["risk_tier"]
+        stressed_revenue = float(row["monthly_revenue"])*multiplier
+        monthly_operating_cost = float(row["monthly_operating_cost"])
+        emi = float(row["emi"])
+
+        stressed_dscr = calculate_dscr(
+            monthly_revenue=stressed_revenue,
+            monthly_operating_cost=monthly_operating_cost,
+            monthly_emi=emi,
+        )
+        stressed_tier = classify_dscr_risk_tier(stressed_dscr)
+
+        if stressed_tier =="High":
+            stressed_high_total += 1
+            if base_tier == "High":
+                already_high += 1
+            else:
+                moved_into_high += 1
+
+    print(f"=== Stress Test: {revenue_drop_pct:.0f}% Revenue Drop ===")
+    print(f"Already in High risk tier:            {already_high}")
+    print(f"Newly moved into High risk tier:      {moved_into_high}")
+    print(f"Total borrowers in High risk tier:    {stressed_high_total}\n")
+    return moved_into_high
 
 def update_borrowers_csv(
     input_path: str | Path = "borrowers.csv",
@@ -147,6 +182,7 @@ def update_borrowers_csv(
     print(f"Processed {len(updated_rows)} borrowers -> saved to {out_path}")
     print_risk_summary_table(updated_rows)
     print_pandas_summaries(updated_rows)
+    report_revenue_drop_stress_test(updated_rows, revenue_drop_pct=20.0)
     return updated_rows
 
 
