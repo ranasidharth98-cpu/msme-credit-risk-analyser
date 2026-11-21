@@ -30,19 +30,3 @@ Summary Tables: Built summary output showing borrower counts and shares by risk 
 
 
 
-\# Work log
-
-
-
-
-
-\## 2026-11-20 (Friday)
-
-\*\*Added:\*\*
-
-Risk Tier Classification (src/risk\_metrics.py): Implemented classify\_dscr\_risk\_tier and wrote the risk\_tier column into borrowers\_with\_emi\_dscr.csv.
-
-Summary Tables: Built summary output showing borrower counts and shares by risk tier, plus pandas groupby summaries for borrower count and total loan amount grouped by risk\_tier and sector.
-
-
-
