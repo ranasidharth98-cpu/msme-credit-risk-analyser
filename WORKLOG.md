@@ -25,6 +25,11 @@
 Risk Tier Classification (src/risk_metrics.py): Implemented classify_dscr_risk_tier and wrote the risk_tier column into borrowers_with_emi_dscr.csv.
 Summary Tables: Built summary output showing borrower counts and shares by risk tier, plus pandas groupby summaries for borrower count and total loan amount grouped by risk_tier and sector.
 
+## 2026-11-21 (Saturday)
+**Added:**
+ Recalculated DSCR if revenue drops by 20%, and reported how many borrowers move into the High tier.
+Created 4 tests\test_risk_metrics.py with three or four small checks.
+
 
 
 
